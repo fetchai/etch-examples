@@ -58,7 +58,6 @@ function main()
 endfunction
 
 
-@init
 function createSupply(owner: Address, supply: UInt256)
   var supply_state = State< UInt256 >("total_supply");  
   supply_state.set(supply);

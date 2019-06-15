@@ -19,9 +19,10 @@
 // This contract require release 0.4.0 or above
 // Note that this is experimental functionality
 
+/*
 @testCase
 function main()
-  createMessage("world");
+  createMessage();
   var greeting = persistentGreeting();
 
   if(greeting != "Hello, world!")
@@ -30,9 +31,11 @@ function main()
 
   printLn(greeting);
 endfunction
+*/
 
 @init
-function createMessage(name : String)
+function createMessage(owner: Address)
+  var name : String = "world";
   var state = State< String >("greetings");
   state.set(name);
 endfunction
