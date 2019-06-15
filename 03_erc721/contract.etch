@@ -22,14 +22,14 @@
 /**
  * Test functions
  **/
-@testCase
+
 function main()
   var owner = Address("2ifr5dSFRAnXexBMC3HYEVp3JHSuz7KBPXWDRBV4xdFrqGy6R9");
   var counter_party = Address("MnrRHdvCkdZodEwM855vemS5V3p2hiWmcSQ8JEzD4ZjPdsYtB");
   var total_supply = 20;
 
   // Creating supply
-  createTokens(owner, total_supply);
+  createTokensImpl(owner, total_supply);
   testOwnersAfterCreate(owner);
 
   // Testing that supply of owner address is what we expect it to be
@@ -72,7 +72,6 @@ function getTokenId(n: Int32) : UInt256
   return token;
 endfunction
 
-@testCase
 function testOwnersAfterCreate(owner: Address)
   var objects_state = State< Array< UInt256 > >(owner);
   var tokens = objects_state.get(Array< UInt256 >(0));
@@ -89,7 +88,6 @@ function testOwnersAfterCreate(owner: Address)
   endfor
 endfunction
 
-@testCase
 function testOwnerOf()
   var token_id = UInt256("hello world");
   var hasher = SHA256();
@@ -101,11 +99,11 @@ endfunction
  * Main implementation
  **/
 @init
-function createTokens()
-  createTokens(Address("2ifr5dSFRAnXexBMC3HYEVp3JHSuz7KBPXWDRBV4xdFrqGy6R9"), 10000);
+function createTokens(owner: Address)
+  createTokensImpl(owner, 10000);
 endfunction
 
-function createTokens(owner: Address, total_supply : Int32)
+function createTokensImpl(owner: Address, total_supply : Int32)
   var objects_state = State< Array< UInt256 > >(owner);
   var tokens        = Array< UInt256 >(total_supply);
 

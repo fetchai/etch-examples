@@ -18,14 +18,12 @@
 
 // This contract require release 0.4.0 or above
 // Note that this is experimental functionality
-
-@testCase
 function main()
   var u_supply = 12619924713u64;
   var u_transfer = 977256u64;
   var supply = UInt256(  u_supply );
   var owner = Address("2ifr5dSFRAnXexBMC3HYEVp3JHSuz7KBPXWDRBV4xdFrqGy6R9");
-  createSupply(owner, supply);
+  createSupplyImpl(owner, supply);
 
   if(totalSupply() != supply)
     panic("Total supply is not what it is expected to be.");
@@ -57,9 +55,12 @@ function main()
 
 endfunction
 
-
 @init
-function createSupply(owner: Address, supply: UInt256)
+function createSupply(owner: Address)
+  createSupplyImpl(owner, UInt256(12619924713u64));
+endfunction
+
+function createSupplyImpl(owner: Address, supply: UInt256)
   var supply_state = State< UInt256 >("total_supply");  
   supply_state.set(supply);
 
@@ -71,11 +72,11 @@ endfunction
 @query
 function totalSupply(): UInt256
   var supply_state = State< UInt256 >("total_supply"); 
-  return supply_state.get(0u64); 
+  return supply_state.get(UInt256(0u64)); 
 endfunction
 
 // balanceOf(address _owner) public view returns (uint256 balance) [Get the account balance of another account with address _owner]
-@qeury
+@query
 function balanceOf(owner: Address) : UInt256
   var balance_state = State< UInt256 >(owner);
 

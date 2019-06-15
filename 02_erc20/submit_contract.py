@@ -13,16 +13,16 @@ def main(source):
     api = LedgerApi('127.0.0.1', 8100)
 
     # Need funds to deploy contract
-    api.sync(api.tokens.wealth(entity, 100000))
+    api.sync(api.tokens.wealth(entity, 1000000))
 
     # Create contract
     contract = SmartContract(source)
 
     # Deploy contract
-    api.sync(api.contracts.create(entity, contract, 10000))
+    api.sync(api.contracts.create(entity, contract, 20000))
 
     # Printing message
-    print(contract.query(api, 'persistentGreeting'))    
+    print(contract.query(api, 'totalSupply'))    
 
 
 if __name__ == '__main__': 
