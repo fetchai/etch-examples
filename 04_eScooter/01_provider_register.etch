@@ -1,0 +1,98 @@
+//------------------------------------------------------------------------------
+//
+//   Copyright 2019 Fetch.AI Limited
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//
+//------------------------------------------------------------------------------
+
+// This contract require release 0.4.0 or above
+// Note that this is experimental functionality
+
+function main()
+  var owner = Address("2ifr5dSFRAnXexBMC3HYEVp3JHSuz7KBPXWDRBV4xdFrqGy6R9");
+  var new_member = Address("MnrRHdvCkdZodEwM855vemS5V3p2hiWmcSQ8JEzD4ZjPdsYtB");
+
+  createContract(owner);
+  if(isMember(new_member))
+    panic("address not supposed to be a member just yet.");
+  else
+    printLn("new_member does not exist yet!");
+  endif
+
+  addProvider(new_member, owner);
+  if(!isMember(new_member))
+    panic("address is supposed to be a member.");
+  else
+    printLn("new_member was added!");
+  endif
+endfunction
+
+@init
+function createContract(owner: Address)
+  // We add the owner as the first provider of scooters
+  addProvider(owner, owner);
+
+  // ...
+endfunction
+
+function isMember(member: Address) : Bool
+  var providers_state = State< Array< Address > >("providers");
+  var providers = providers_state.get( Array< Address >(0) );
+
+  var valid_member = false;
+  for(i in 0:providers.count()-1)
+    if(providers[i] == member)
+      valid_member = true;
+      break;
+    endif
+  endfor
+
+  return valid_member;
+endfunction
+
+@action
+function addProvider(provider: Address, member: Address) : Bool
+//  COMMENTED OUT TO ALLOW RUNNING THIS IN THE SIMULATOR
+//  if(!member.signedTx())
+//    panic("refering member did not sign contract");
+//  endif
+
+  // Fetching the provider state variable
+  var providers_state = State< Array< Address > >("providers");
+  var providers = providers_state.get( Array< Address >(0) );
+
+  // Checking that condition for adding is met
+  var can_add_provider = false;  
+  if( providers.count() == 0 )
+    can_add_provider = true;
+  else
+    for(i in 0:providers.count()-1)
+      if(providers[i] == member)
+        can_add_provider = true;
+        break;
+      endif
+    endfor
+  endif
+
+  if(!can_add_provider)
+    panic("only existing members can add new members");
+  endif
+
+  // Storing the updated list of members
+  providers.append(provider);  
+  providers_state.set(providers);
+
+  return true;
+endfunction
+
