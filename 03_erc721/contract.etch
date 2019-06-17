@@ -26,7 +26,7 @@
 function main()
   var owner = Address("2ifr5dSFRAnXexBMC3HYEVp3JHSuz7KBPXWDRBV4xdFrqGy6R9");
   var counter_party = Address("MnrRHdvCkdZodEwM855vemS5V3p2hiWmcSQ8JEzD4ZjPdsYtB");
-  var total_supply = 20;
+  var total_supply = 10000;
 
   // Creating supply
   createTokensImpl(owner, total_supply);
@@ -40,7 +40,7 @@ function main()
     panic("Expected " + toString(total_supply) + " tokens.");
   endif
   
-  var token = getTokenId(total_supply / 2  + 1);
+  var token = getTokenId(9);
   transferFrom(owner, counter_party, token);
 
   b = balanceOf(owner);
@@ -56,20 +56,6 @@ function main()
   if(b != UInt256(toUInt64(1)))
     panic("Expected 1 tokens.");
   endif
-endfunction
-
-function getTokenId(n: Int32) : UInt256
-  // We generate token ids by consecutively hashing
-  // the previous token name, starting with "hello world"
-  // as seed.
-  var token = UInt256("hello world");
-  for(i in 0:n)
-    var hasher = SHA256();
-    hasher.update(token);
-    token = hasher.final();
-  endfor
-
-  return token;
 endfunction
 
 function testOwnersAfterCreate(owner: Address)
@@ -104,6 +90,10 @@ function createTokens(owner: Address)
 endfunction
 
 function createTokensImpl(owner: Address, total_supply : Int32)
+  if(owner == null)
+    panic("owner cannot be null.");
+  endif
+
   var objects_state = State< Array< UInt256 > >(owner);
   var tokens        = Array< UInt256 >(total_supply);
 
@@ -125,6 +115,41 @@ function createTokensImpl(owner: Address, total_supply : Int32)
 
   // Storing the tokens on the owners address
   objects_state.set(tokens);
+endfunction
+
+@query
+function getTokenId(number: Int32) : UInt256
+  // We generate token ids by consecutively hashing
+  // the previous token name, starting with "hello world"
+  // as seed.
+  var token = UInt256("hello world");
+  for(i in 0:number)
+    var hasher = SHA256();
+    hasher.update(token);
+    token = hasher.final();
+  endfor
+
+  return token;
+endfunction
+
+
+@query
+function isEqual(number: Int32, expected: UInt256) : Bool
+  // We generate token ids by consecutively hashing
+  // the previous token name, starting with "hello world"
+  // as seed.
+  var token = UInt256("hello world");
+  for(i in 0:number)
+    var hasher = SHA256();
+    hasher.update(token);
+    token = hasher.final();
+  endfor
+
+  if(token != expected)
+    panic("Token ids differ: " + toString(token) + " vs. " + toString(expected));
+  endif
+
+  return true;
 endfunction
 
 /// @notice Count all NFTs assigned to an owner
@@ -152,7 +177,8 @@ endfunction
 @query
 function ownerOf(token_id: UInt256) : Address
   var owner_state = ShardedState< Address >("tokens.owner");
-  return owner_state.get(toString(token_id));
+
+  return owner_state.get(toString(token_id), null);
 endfunction
 
 /// @notice Transfer ownership of an NFT -- THE CALLER IS RESPONSIBLE

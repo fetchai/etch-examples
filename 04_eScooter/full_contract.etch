@@ -1,0 +1,212 @@
+//------------------------------------------------------------------------------
+//
+//   Copyright 2019 Fetch.AI Limited
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//
+//------------------------------------------------------------------------------
+
+// This contract require release 0.4.0 or above
+// Note that this is experimental functionality
+
+function main()
+  var owner = Address("2ifr5dSFRAnXexBMC3HYEVp3JHSuz7KBPXWDRBV4xdFrqGy6R9");
+  var new_member = Address("MnrRHdvCkdZodEwM855vemS5V3p2hiWmcSQ8JEzD4ZjPdsYtB");
+
+  createContract(owner);
+  if(isMember(new_member))
+    panic("address not supposed to be a member just yet.");
+  endif
+
+  addProvider(new_member, owner);
+  if(!isMember(new_member))
+    panic("address is supposed to be a member.");
+  endif
+
+endfunction
+
+@init
+function createContract(owner: Address)
+  // We add the owner as the first provider of scooters
+  addProvider(owner, owner);
+
+  // The initial fleet is empty
+  var fleet_state = State< Array< Address > >("fleet");
+  fleet_state.set(Array< Address >(0));
+
+  // Scooter tokens
+  var supply = 1933423612u64;
+  var supply_state = State< UInt64 >("token_supply");  
+  supply_state.set(supply);
+
+  // Setting account balance
+  var balance_state = ShardedState< UInt64 >("account");
+  balance_state.set( owner, supply );
+endfunction
+
+function isMember(member: Address) : Bool
+  var providers_state = State< Array< Address > >("providers");
+  var providers = providers_state.get( Array< Address >(0) );
+
+  var valid_member = false;
+  for(i in 0:providers.count()-1)
+    if(providers[i] == member)
+      valid_member = true;
+      break;
+    endif
+  endfor
+
+  return valid_member;
+endfunction
+
+@action
+function addProvider(provider: Address, member: Address) : Bool
+//  if(!member.signedTx())
+//    panic("refering member did not sign contract");
+//  endif
+
+  // Fetching the provider state variable
+  var providers_state = State< Array< Address > >("providers");
+  var providers = providers_state.get( Array< Address >(0) );
+
+  // Checking that condition for adding is met
+  var can_add_provider = false;  
+  if( providers.count() == 0 )
+    can_add_provider = true;
+  else
+    for(i in 0:providers.count()-1)
+      if(providers[i] == member)
+        can_add_provider = true;
+        break;
+      endif
+    endfor
+  endif
+
+  if(!can_add_provider)
+    panic("only existing members can add new members");
+  endif
+
+  // Storing the updated list of members
+  providers.append(provider);  
+  providers_state.set(providers);
+
+  return true;
+endfunction
+
+
+@action
+function addScooter(scooter: Address, member: Address, latitude: UInt64, longitude: UInt64) 
+//  if(!member.signedTx())
+//    panic("member did not sign contract");
+//  endif
+
+//  if(!scooter.signedTx())
+//    panic("scooter member did not sign contract");
+//  endif
+
+  if(!isMember(member))
+    panic("only members can add scooters to the fleet.");
+  endif
+
+  // Adding the scooter to the fleet
+  var fleet_state = State< Array< Address > >("fleet");
+  var fleet = fleet_state.get( Array< Address >(0) );
+  fleet.append(scooter);
+
+  // Scooter 
+  var scooter_owner     = ShardedState< Address  >("scooter.owner");
+  var scooter_latitude  = ShardedState< UInt64  >("scooter.latitude");
+  var scooter_longitude = ShardedState< UInt64  >("scooter.longitude");
+  var scooter_target_latitude  = ShardedState< UInt64  >("scooter.target_latitude");
+  var scooter_target_longitude = ShardedState< UInt64  >("scooter.target_longitude");  
+  var scooter_used_by   = ShardedState< Address  >("scooter.used_by");
+  var scooter_charge    = ShardedState< Int16  >("scooter.charge");  
+
+  scooter_owner.set(scooter, member);
+  scooter_latitude.set(scooter, latitude);
+  scooter_longitude.set(scooter, longitude);
+  scooter_target_latitude.set(scooter, latitude);
+  scooter_target_longitude.set(scooter, longitude);
+
+  scooter_used_by.set(scooter, scooter);
+  scooter_charge.set(scooter, 10000i16);
+
+  fleet_state.set(fleet);
+endfunction
+
+@action
+function scooterUpdate(scooter: Address, latitude: UInt64, longitude: UInt64, charge: Int16) 
+//  if(!scooter.signedTx())
+//    panic("scooter did not sign contract");
+//  endif
+
+  // Scooter 
+  var scooter_latitude  = ShardedState< UInt64  >("scooter.latitude");
+  var scooter_longitude = ShardedState< UInt64  >("scooter.longitude");
+  var scooter_charge    = ShardedState< Int16  >("scooter.charge");
+
+  scooter_latitude.set(scooter, latitude);
+  scooter_longitude.set(scooter, longitude);
+  scooter_charge.set(scooter, charge);
+endfunction
+
+
+@action
+function startJourney(scooter: Address, rider: Address, max_cost : UInt64, target_lat: UInt64, target_lng: UInt64) 
+//  if(!scooter.signedTx())
+//    panic("scooter did not sign contract");
+//  endif
+
+//  if(!rider.signedTx())
+//    panic("rider did not sign contract");
+//  endif
+
+  var balance_state = ShardedState< UInt64 >("account");
+  var scooter_used_by   = ShardedState< Address  >("scooter.used_by");
+  var used_by = scooter_used_by.get(scooter);
+  if(used_by != scooter)
+    panic("scooter is already in use.");
+  endif 
+
+  var balance = balance_state.get( rider, 0u64 );
+  if(balance < max_cost)
+    panic("insufficient funds");
+  endif
+
+  balance = balance - max_cost;
+  var scooter_deposit = ShardedState< UInt64 >("scooter.deposit");
+  // var scooter_block_time = ShardedState< UInt64 >("scooter.block_time");
+  var scooter_target_latitude  = ShardedState< UInt64  >("scooter.target_latitude");
+  var scooter_target_longitude = ShardedState< UInt64  >("scooter.target_longitude");    
+
+
+  balance_state.set(rider, balance);
+  scooter_deposit.set(scooter, max_cost);
+  //  scooter_block_time.set(scooter, getBlockNumber());
+  scooter_used_by.set(scooter, rider);
+  scooter_target_latitude.set(scooter, target_lat);
+  scooter_target_longitude.set(scooter, target_lng);  
+endfunction
+
+
+@action
+function settle(scooter: Address, rider: Address, max_cost : UInt64, lat: UInt64, lng: UInt64)
+//  if(!scooter.signedTx())
+//    panic("scooter did not sign contract");
+//  endif
+
+//  if(!rider.signedTx())
+//    panic("rider did not sign contract");
+//  endif
+
+endfunction
