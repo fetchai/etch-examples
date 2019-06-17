@@ -22,7 +22,8 @@
 
 @testCase
 function main()
-  createMessage("world");
+  var account = Address("2ifr5dSFRAnXexBMC3HYEVp3JHSuz7KBPXWDRBV4xdFrqGy6R9");
+  createMessage(account);
   var greeting = persistentGreeting();
 
   if(greeting != "Hello, world!")
@@ -34,7 +35,7 @@ endfunction
 
 
 @init
-function createMessage(s : String)
+function createMessage(owner : Address)
   var name : String = "world";
   var state = State< String >("greetings");
   state.set(name);
