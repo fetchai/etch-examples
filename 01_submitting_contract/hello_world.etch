@@ -20,7 +20,6 @@
 // Note that this is experimental functionality
 
 /*
-@testCase
 function main()
   createMessage();
   var greeting = persistentGreeting();
