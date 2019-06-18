@@ -4,35 +4,39 @@ from fetchai.ledger.crypto import Entity, Address
 import sys
 import time
 
-def main(source):
+def main(source, name):
     # Create keypair for the contract owner
-    entity = Entity()
-    address = Address(entity)
+    provider1 = Entity()
+    address1 = Address(provider1)
+    provider2 = Entity()
+    address2 = Address(provider2)
+
+    scooter1 = Entity()
+    scooter_address1 = Address(scooter1)
+
+
     
     # Setting API up
     api = LedgerApi('127.0.0.1', 8100)
 
     # Need funds to deploy contract
-    api.sync(api.tokens.wealth(entity, 5000000))
+    api.sync(api.tokens.wealth(provider1, 59000000))
 
     # Create contract
     contract = SmartContract(source)
 
     # Deploy contract
-    api.sync(api.contracts.create(entity, contract, 2456766))
+    api.sync(api.contracts.create(provider1, contract, 2456766))
 
-    # Printing balance of the creating address
-    print(contract.query(api, 'balanceOf', owner = address)) 
+    if name.endswith("contract.etch"):
+        contract.action(api, 'addProvider', 2456766, [provider2, provider1], address2, address1 )
+        contract.action(api, 'addScooter', 2456766, [provider2, provider1], address2, address1, 22, 1 )        
 
-    # Getting the 9'th token id.
-    token_id = contract.query(api, 'getTokenId', number = 9) 
-
-    # Testing
-    contract.query(api, 'isEqual', number = 9, expected = token_id) 
-
-    # Locating the owner of a token
-    print("Finding the owner of ", token_id)    
-    print(contract.query(api, 'ownerOf', token_id = token_id))
+        print("Wait for txs to be mined ...")
+        time.sleep(5)
+        
+        # Printing balance of the creating address1
+        print(contract.query(api, 'getFleetSize'), " scooter in fleet")
 
 if __name__ == '__main__': 
     # Loading contract
@@ -43,4 +47,4 @@ if __name__ == '__main__':
     with open(sys.argv[1], "r") as fb:
       source = fb.read()
 
-    main(source)
+    main(source, sys.argv[1])
