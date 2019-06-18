@@ -19,9 +19,9 @@
 // This contract require release 0.4.0 or above
 // Note that this is experimental functionality
 
-/*
 function main()
-  createMessage();
+  var account = Address("2ifr5dSFRAnXexBMC3HYEVp3JHSuz7KBPXWDRBV4xdFrqGy6R9");
+  createMessage(account);
   var greeting = persistentGreeting();
 
   if(greeting != "Hello, world!")
@@ -30,10 +30,10 @@ function main()
 
   printLn(greeting);
 endfunction
-*/
+
 
 @init
-function createMessage(owner: Address)
+function createMessage(owner : Address)
   var name : String = "world";
   var state = State< String >("greetings");
   state.set(name);
