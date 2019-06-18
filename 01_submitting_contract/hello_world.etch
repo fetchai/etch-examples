@@ -19,8 +19,6 @@
 // This contract require release 0.4.0 or above
 // Note that this is experimental functionality
 
-
-@testCase
 function main()
   var account = Address("2ifr5dSFRAnXexBMC3HYEVp3JHSuz7KBPXWDRBV4xdFrqGy6R9");
   createMessage(account);
