@@ -69,6 +69,20 @@ function isMember(member: Address) : Bool
   return valid_member;
 endfunction
 
+@query
+function getProviderSize() : Int32
+  var provider_state = State< Array< Address > >("providers");
+  var provider = provider_state.get(Array< Address>(0));
+  return provider.count();
+endfunction
+
+@query
+function getFleetSize() : Int32
+  var fleet_state = State< Array< Address > >("fleet");
+  var fleet = fleet_state.get(Array< Address>(0));
+  return fleet.count();
+endfunction
+
 @action
 function addProvider(provider: Address, member: Address) : Bool
 //  if(!member.signedTx())
@@ -208,5 +222,6 @@ function settle(scooter: Address, rider: Address, max_cost : UInt64, lat: UInt64
 //  if(!rider.signedTx())
 //    panic("rider did not sign contract");
 //  endif
-
+  
+  // TODO: Yet to be implemented.
 endfunction

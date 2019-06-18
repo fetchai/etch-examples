@@ -207,7 +207,7 @@ function transferFrom(from: Address, to: Address, token_id: UInt256)
 
   var from_state   = State< Array< UInt256 > >(from);
   var from_objects = from_state.get( Array< UInt256 >(0) );
-  var found = false;
+  var found        = false;
   var position : Int32;
 
 
