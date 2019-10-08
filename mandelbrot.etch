@@ -1,7 +1,7 @@
   // TWS, April 28th, Mandelbrot Set (simple):
   function main()
     //
-    Print("Mandelbrot Set");
+    printLn("Mandelbrot Set");
     //
     // The "screen" size and the screen itself (double height for mirrored set):
     var xMax : Int32 = 100;
@@ -79,7 +79,7 @@
           endfor
         //
         // Output this line and proceed to next:
-        Print(line);
+        printLn(line);
         endfor
     
   endfunction
