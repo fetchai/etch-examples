@@ -13,17 +13,26 @@ def main(source):
     api = LedgerApi('127.0.0.1', 8100)
 
     # Need funds to deploy contract
-    api.sync(api.tokens.wealth(entity, 1000000))
+    api.sync(api.tokens.wealth(entity, 5000000))
 
     # Create contract
     contract = SmartContract(source)
 
     # Deploy contract
-    api.sync(api.contracts.create(entity, contract, 20000))
+    api.sync(api.contracts.create(entity, contract, 2456766))
 
-    # Printing message
-    print(contract.query(api, 'totalSupply'))    
+    # Printing balance of the creating address
+    print(contract.query(api, 'balanceOf', owner = address)) 
 
+    # Getting the 9'th token id.
+    token_id = contract.query(api, 'getTokenId', number = 9) 
+
+    # Testing
+    contract.query(api, 'isEqual', number = 9, expected = token_id) 
+
+    # Locating the owner of a token
+    print("Finding the owner of ", token_id)    
+    print(contract.query(api, 'ownerOf', token_id = token_id))
 
 if __name__ == '__main__': 
     # Loading contract
