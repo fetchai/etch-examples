@@ -18,6 +18,8 @@
 
 // This contract require release 0.4.0 or above
 // Note that this is experimental functionality
+
+//Fungible token generation contract 
 function main()
   var u_supply = 12619924713u64;
   var u_transfer = 977256u64;
