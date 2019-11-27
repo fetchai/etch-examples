@@ -42,19 +42,19 @@ function train(data: Tensor, label: Tensor)
 endfunction
 
 // get the current training loss of the model
-//@query
-//function evaluate() : Fixed64
-//  use model_state;
-//  var model = model_state.get();
-//  var loss = model.evaluate();
-//  return loss;
-//endfunction
-//
+@query
+function evaluate() : Fixed64
+  use model_state;
+  var model = model_state.get();
+  var loss = model.evaluate();
+  return loss;
+endfunction
+
 // make a prediction with the model based on input data passed to function
-//@query
-//function predict(data: Tensor) : Tensor
-//  use model_state;
-//  var model = model_state.get();
-//  var prediction = model.predict(data);
-//  return prediction;
-//endfunction
+@query
+function predict(data: Tensor) : Tensor
+  use model_state;
+  var model = model_state.get();
+  var prediction = model.predict(data);
+  return prediction;
+endfunction
