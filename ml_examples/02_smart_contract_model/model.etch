@@ -1,0 +1,60 @@
+//------------------------------------------------------------------------------
+//
+//   Copyright 2019 Fetch.AI Limited
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//
+//------------------------------------------------------------------------------
+
+persistent model_state : Model;
+
+// initial set up creates the model and persistent data
+@init
+function setup(owner : Address)
+  use model_state;
+  var model = model_state.get(Model("sequential"));
+  model.add("dense", 13u64, 10u64, "relu");
+  model.add("dense", 10u64, 10u64, "relu");
+  model.add("dense", 10u64, 1u64);
+  model.compile("mse", "adam");
+  model_state.set(model);
+endfunction
+
+// pass in some data, train the model with it, save the updated model to state
+@action
+function train(data: Tensor, label: Tensor)
+  use model_state;
+  var model = model_state.get();
+
+  var batch_size = 10u64;
+  model.fit(data, label, batch_size);
+  model_state.set(model);
+endfunction
+
+// get the current training loss of the model
+//@query
+//function evaluate() : Fixed64
+//  use model_state;
+//  var model = model_state.get();
+//  var loss = model.evaluate();
+//  return loss;
+//endfunction
+//
+// make a prediction with the model based on input data passed to function
+//@query
+//function predict(data: Tensor) : Tensor
+//  use model_state;
+//  var model = model_state.get();
+//  var prediction = model.predict(data);
+//  return prediction;
+//endfunction
