@@ -81,14 +81,14 @@ endfunction
 @action
 function train(data_string: String, label_string: String)
   use model_state;
-  use data_state;
-  use label_state;
-
   var model = model_state.get();
-  var data = data_state.get();
-  var label = label_state.get();
 
+  use data_state;
+  var data = data_state.get();
   data.fromString(data_string);
+
+  use label_state;
+  var label = label_state.get();
   label.fromString(label_string);
 
   var batch_size = 10u64;
@@ -96,11 +96,16 @@ function train(data_string: String, label_string: String)
   model_state.set(model);
 endfunction
 
-//// make a prediction with the model based on input data passed to function
-//@query
-//function predict(data: Tensor) : Tensor
-//  use model_state;
-//  var model = model_state.get();
-//  var prediction = model.predict(data);
-//  return prediction;
-//endfunction
+// make a prediction with the model based on input data passed to function
+@query
+function predict(data_string: String) : String
+  use model_state;
+  var model = model_state.get();
+
+  use data_state;
+  var data = data_state.get();
+  data.fromString(data_string);
+
+  var prediction = model.predict(data);
+  return prediction.toString();
+endfunction
