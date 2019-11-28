@@ -35,10 +35,10 @@ def main(source, train_data, train_labels, test_data, test_labels):
 
     # train on some input data
     fet_tx_fee = 16000000
-    contract.action(api, 'train', fet_tx_fee, [entity], data_string, label_string)
+    api.sync(contract.action(api, 'train', fet_tx_fee, [entity], data_string, label_string))
 
     # predict loss after training
-    prediction = contract.query(api, 'predict', data_string=contract.query(api, 'getData'))
+    prediction = contract.query(api, 'predict', data_string=data_string)
     print("model prediction: " + prediction)
 
 if __name__ == '__main__':
