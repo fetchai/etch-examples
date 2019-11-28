@@ -20,16 +20,40 @@ def main(source, train_data, train_labels, test_data, test_labels):
     contract = Contract(source, entity)
 
     # Deploy contract
-    api.sync(api.contracts.create(entity, contract, 1000000000))
+    # api.sync(api.contracts.create(entity, contract, 1000000000))
+    api.sync(contract.create(api, entity, 1000000000))
+
+    # evaluate the initial loss
+    initial_loss = contract.query(api, 'evaluate')
+    print("initial loss: " + initial_loss)
+
+    # grab the data and label tensor
+    data_string = contract.query(api, 'getData')
+    label_string = contract.query(api, 'getLabel')
+    print("initial data: " + data_string)
+    print("initial label: " + label_string)
+
+    # train on some input data
+    fet_tx_fee = 16000000
+    contract.action(api, 'train', fet_tx_fee, [entity], data_string, label_string)
 
     # # evaluate loss after training
     # print(contract.query(api, 'evaluate'))
-    #
-    # # evaluate loss after training
-    # print(contract.query(api, 'evaluate'))
-    #
-    # # evaluate loss after training
-    # print(contract.query(api, 'evaluate'))
+
+# def setData(self):
+#     """Function to set the historic data to the contract."""
+#
+#     new_data = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]]
+#
+#     seperator = ","
+#     for items in self.data[len(self.data) - (256 + 32): len(self.data) - 32]:
+#         mData.append(items["close"])
+#
+#     allData = seperator.join(map(str, mData))
+#     fet_tx_fee = 100000000
+#     self.api.sync(self.contract.action(
+#         self.api, 'setHistorics', fet_tx_fee, [self.entity], allData))
+#     print("Finished the setHistorics on the Contract")
 
 if __name__ == '__main__':
 
