@@ -23,10 +23,6 @@ def main(source, train_data, train_labels, test_data, test_labels):
     # api.sync(api.contracts.create(entity, contract, 1000000000))
     api.sync(contract.create(api, entity, 1000000000))
 
-    # evaluate the initial loss
-    initial_loss = contract.query(api, 'evaluate')
-    print("initial loss: " + initial_loss)
-
     # grab the data and label tensor
     data_string = contract.query(api, 'getData')
     label_string = contract.query(api, 'getLabel')
@@ -36,6 +32,10 @@ def main(source, train_data, train_labels, test_data, test_labels):
     # train on some input data
     fet_tx_fee = 16000000
     api.sync(contract.action(api, 'train', fet_tx_fee, [entity], data_string, label_string))
+
+    # evaluate the initial loss
+    initial_loss = contract.query(api, 'evaluate')
+    print("initial loss: " + initial_loss)
 
     # predict loss after training
     prediction = contract.query(api, 'predict', data_string=data_string)
