@@ -5,7 +5,7 @@ import sys
 import time
 
 DATA_FILE = "/Users/khan/fetch/corpora/boston/boston_data.csv"
-LABEL_FILE = "/Users/khan/fetch/corpora/boston/boston_10_label.csv"
+LABEL_FILE = "/Users/khan/fetch/corpora/boston/boston_label.csv"
 
 def read_one_line_data_csv_as_string(fname):
 
