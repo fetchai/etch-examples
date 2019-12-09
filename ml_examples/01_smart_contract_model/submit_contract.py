@@ -4,6 +4,15 @@ from fetchai.ledger.crypto import Entity, Address
 import sys
 import time
 
+DATA_FILE = "/Users/khan/fetch/corpora/boston/boston_data.csv"
+LABEL_FILE = "/Users/khan/fetch/corpora/boston/boston_10_label.csv"
+
+def read_one_line_data_csv_as_string(fname):
+
+    f = open(fname, 'r')
+    return f.readline()
+
+
 def main(source, train_data, train_labels, test_data, test_labels):
 
     # Create keypair for the contract owner
@@ -23,9 +32,14 @@ def main(source, train_data, train_labels, test_data, test_labels):
     # api.sync(api.contracts.create(entity, contract, 1000000000))
     api.sync(contract.create(api, entity, 1000000000))
 
-    # grab the data and label tensor
+    # grab the data and label tensor - just to demonstrate usage
     data_string = contract.query(api, 'getData')
     label_string = contract.query(api, 'getLabel')
+
+    # grab boston data set data
+    data_string = read_one_line_data_csv_as_string(DATA_FILE)
+    label_string = read_one_line_data_csv_as_string(LABEL_FILE)
+
     print("initial data: " + data_string)
     print("initial label: " + label_string)
 
