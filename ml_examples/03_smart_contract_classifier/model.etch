@@ -1,0 +1,110 @@
+//------------------------------------------------------------------------------
+//
+//   Copyright 2019 Fetch.AI Limited
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//
+//------------------------------------------------------------------------------
+
+persistent model_state : Model;
+persistent data_state : Tensor;
+persistent label_state : Tensor;
+
+// initial set up creates the model and persistent data
+@init
+function setup(owner : Address)
+  use model_state;
+  use data_state;
+  use label_state;
+
+  // set up the initial model
+  var model = model_state.get(Model("sequential"));
+  model.add("dense", 784u64, 10u64, "relu");
+  model.add("dense", 10u64, 10u64);
+  model.compile("scel", "sgd");
+  model_state.set(model);
+
+  // define the initial input data
+  var data_shape = Array<UInt64>(2);
+  data_shape[0] = 784u64;                // mnist feature size is 784
+  data_shape[1] = 1u64;                  // batch size == 1
+  var data = data_state.get(Tensor(data_shape));
+  data_state.set(data);
+
+  // define the initial label
+  var label_shape = Array<UInt64>(2);
+  label_shape[0] = 10u64;                // mnist output classes = 10
+  label_shape[1] = 1u64;                // batch size == 1
+  var label = label_state.get(Tensor(label_shape));
+  label_state.set(label);
+
+endfunction
+
+// get the data state
+@query
+function getData() : String
+  use data_state;
+  var data = data_state.get();
+  return data.toString();
+endfunction
+
+// get the label state
+@query
+function getLabel() : String
+  use label_state;
+  var label = label_state.get();
+  return label.toString();
+endfunction
+
+// get the current training loss of the model
+@query
+function evaluate() : String
+  use model_state;
+  var model = model_state.get();
+  var loss = model.evaluate();
+  var str_loss = toString(loss[0]);
+  return str_loss;
+endfunction
+
+// pass in some data, train the model with it, save the updated model to state
+@action
+function train(data_string: String, label_string: String)
+  use model_state;
+  var model = model_state.get();
+
+  use data_state;
+  var data = data_state.get();
+  data.fromString(data_string);
+
+  use label_state;
+  var label = label_state.get();
+  label.fromString(label_string);
+
+  var batch_size = 10u64;
+  model.fit(data, label, batch_size);
+  model_state.set(model);
+endfunction
+
+// make a prediction with the model based on input data passed to function
+@query
+function predict(data_string: String) : String
+  use model_state;
+  var model = model_state.get();
+
+  use data_state;
+  var data = data_state.get();
+  data.fromString(data_string);
+
+  var prediction = model.predict(data);
+  return prediction.toString();
+endfunction
