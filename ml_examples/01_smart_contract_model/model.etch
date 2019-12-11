@@ -73,7 +73,7 @@ function evaluate() : String
   use model_state;
   var model = model_state.get();
   var loss = model.evaluate();
-  var str_loss = toString(loss);
+  var str_loss = toString(loss[0]);
   return str_loss;
 endfunction
 

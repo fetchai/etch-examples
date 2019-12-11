@@ -49,7 +49,6 @@ def main(source, train_data, train_labels, test_data, test_labels):
 
     # evaluate the initial loss
     initial_loss = contract.query(api, 'evaluate')
-    print("initial loss: " + initial_loss)
 
     # predict loss after training
     prediction = contract.query(api, 'predict', data_string=data_string)
