@@ -67,6 +67,19 @@ function getLabel() : String
   return label.toString();
 endfunction
 
+// set the data state
+@action
+function setDataAndLabel(data_string: String, label_string: String)
+  use data_state;
+  use label_state;
+
+  data.fromString(data_string);
+  label.fromString(label_string);
+
+  data_state.set(data);
+  label_state.set(label);
+endfunction
+
 // get the current training loss of the model
 @query
 function evaluate() : String
