@@ -51,6 +51,8 @@ function setup(owner : Address)
 
 endfunction
 
+/// below functionality is common to both boston & mnist examples ///
+
 // get the data state
 @query
 function getData() : String

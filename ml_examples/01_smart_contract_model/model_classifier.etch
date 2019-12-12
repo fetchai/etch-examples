@@ -50,6 +50,8 @@ function setup(owner : Address)
 
 endfunction
 
+/// below functionality is common to both boston & mnist examples ///
+
 // get the data state
 @query
 function getData() : String
@@ -64,6 +66,19 @@ function getLabel() : String
   use label_state;
   var label = label_state.get();
   return label.toString();
+endfunction
+
+// set the data state
+@action
+function setDataAndLabel(data_string: String, label_string: String)
+  use data_state;
+  use label_state;
+
+  data.fromString(data_string);
+  label.fromString(label_string);
+
+  data_state.set(data);
+  label_state.set(label);
 endfunction
 
 // get the current training loss of the model

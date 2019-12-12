@@ -7,6 +7,7 @@ import time
 # TODO - make different train and test files
 # TODO - make 10 mnist images file
 # TODO - read in all 10 examples
+# TODO - try out switching batch size from data set one to data set two
 
 
 REGRESSION_DATA_TRAIN_FILE = "../data/boston_data.csv"
@@ -25,9 +26,9 @@ def contract_setup():
 
     # Create keypair for the contract owner
     entity1 = Entity()
-    address = Address(entity1)
+    address1 = Address(entity1)
     entity2 = Entity()
-    address = Address(entity2)
+    address2 = Address(entity2)
 
     # Setting API up
     api = LedgerApi('127.0.0.1', 8000)
@@ -116,7 +117,7 @@ def main(source, mode):
 if __name__ == '__main__':
 
     # Loading contract
-    if len(sys.argv) != 6:
+    if len(sys.argv) != 3:
       print("Usage: ", sys.argv[0], "[filename] [mode]")
       exit(-1)
 
