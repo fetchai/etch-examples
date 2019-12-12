@@ -75,6 +75,9 @@ function setDataAndLabel(data_string: String, label_string: String)
   use data_state;
   use label_state;
 
+  var data = data_state.get();
+  var label = label_state.get();
+
   data.fromString(data_string);
   label.fromString(label_string);
 

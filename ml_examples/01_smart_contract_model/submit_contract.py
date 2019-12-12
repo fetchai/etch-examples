@@ -4,15 +4,15 @@ from fetchai.ledger.crypto import Entity, Address
 import sys
 import time
 
-REGRESSION_DATA_TRAIN_FILE = "data/boston_train_data.csv"       # 5 training examples
-REGRESSION_LABEL_TRAIN_FILE = "data/boston_train_label.csv"     # 5 training labels
-REGRESSION_DATA_TEST_FILE = "data/boston_test_data.csv"         # 4 test examples
-REGRESSION_LABEL_TEST_FILE = "data/boston_test_label.csv"       # 4 test labels
+REGRESSION_DATA_TRAIN_FILE = "../data/boston_train_data.csv"       # 5 training examples
+REGRESSION_LABEL_TRAIN_FILE = "../data/boston_train_label.csv"     # 5 training labels
+REGRESSION_DATA_TEST_FILE = "../data/boston_test_data.csv"         # 4 test examples
+REGRESSION_LABEL_TEST_FILE = "../data/boston_test_label.csv"       # 4 test labels
 
-CLASSIFICATION_DATA_TRAIN_FILE = "data/mnist_train_data.csv"    # 1 training example
-CLASSIFICATION_LABEL_TRAIN_FILE = "data/mnist_train_label.csv"  # 1 training label
-CLASSIFICATION_DATA_TEST_FILE = "data/mnist_test_data.csv"      # 1 test example
-CLASSIFICATION_LABEL_TEST_FILE = "data/mnist_test_label.csv"    # 1 test label
+CLASSIFICATION_DATA_TRAIN_FILE = "../data/mnist_train_data.csv"    # 1 training example
+CLASSIFICATION_LABEL_TRAIN_FILE = "../data/mnist_train_label.csv"  # 1 training label
+CLASSIFICATION_DATA_TEST_FILE = "../data/mnist_test_data.csv"      # 1 test example
+CLASSIFICATION_LABEL_TEST_FILE = "../data/mnist_test_label.csv"    # 1 test label
 
 
 # generic contract setup
@@ -37,7 +37,7 @@ def contract_setup():
     # Deploy contract
     api.sync(contract.create(api, entity1, 1000000000))
 
-    return api, entity1, entity2
+    return api, contract, entity1, entity2
 
 
 # helper function for reading in training data
@@ -46,26 +46,32 @@ def read_csv_as_string(fname):
     f = open(fname, 'r')
     return f.read()
 
-def load_training_data(mode):
+def load_data(mode, training=True):
 
     if mode == "boston":
 
-        data_file =  REGRESSION_DATA_TRAIN_FILE
-        label_file = REGRESSION_LABEL_TRAIN_FILE
+        if training:
+            data_file =  REGRESSION_DATA_TRAIN_FILE
+            label_file = REGRESSION_LABEL_TRAIN_FILE
+        else:
+            data_file =  REGRESSION_DATA_TEST_FILE
+            label_file = REGRESSION_LABEL_TEST_FILE
 
     elif mode == "mnist":
 
-        data_file  = CLASSIFICATION_DATA_TRAIN_FILE
-        label_file = CLASSIFICATION_LABEL_TRAIN_FILE
+        if training:
+            data_file  = CLASSIFICATION_DATA_TRAIN_FILE
+            label_file = CLASSIFICATION_LABEL_TRAIN_FILE
+        else:
+            data_file  = CLASSIFICATION_DATA_TEST_FILE
+            label_file = CLASSIFICATION_LABEL_TEST_FILE
 
     data_string = read_csv_as_string(data_file)
     label_string = read_csv_as_string(label_file)
-    print("initial data: " + data_string)
-    print("initial label: " + label_string)
 
     return data_string, label_string
 
-def train_and_evaluate(entity, data_string, label_string):
+def train_and_evaluate(api, contract, entity, data_string, label_string):
 
     # train on the input data
     fet_tx_fee = 16000000
@@ -78,31 +84,38 @@ def train_and_evaluate(entity, data_string, label_string):
 
 def main(source, mode):
 
-    api, entity1, entity2 = contract_setup()
+    api, contract, entity1, entity2 = contract_setup()
 
     # load training data
-    data_string, label_string = load_training_data(mode)
+    train_data_string, train_label_string = load_data(mode)
+    print("initial data: " + train_data_string)
+    print("initial label: " + train_label_string)
 
     # train and evaluate
-    train_and_evaluate(entity1, data_string, label_string)
+    train_and_evaluate(api, contract, entity1, train_data_string, train_label_string)
 
     # make a prediction on the training data
-    prediction = contract.query(api, 'predict', data_string=data_string)
+    prediction = contract.query(api, 'predict', data_string=train_data_string)
     print("model training prediction: " + prediction)
+
+    # load different set of data
+    test_data_string, test_label_string = load_data(mode, False)
+    print("test data: " + test_data_string)
+    print("test label: " + test_label_string)
 
     # entity2 decides to set some new data and label
     fet_tx_fee = 160000
-    contract.action(api, 'setDataAndLabel', fet_tx_fee, [entity2], data_string, label_string)
+    api.sync(contract.action(api, 'setDataAndLabel', fet_tx_fee, [entity2], test_data_string, test_label_string))
 
     # entity 1 grabs the latest data for inspection
     # we don't need to do this - but we just demonstrate how here
-    data_string = contract.query(api, 'getData')
-    label_string = contract.query(api, 'getLabel')
-    print("some new data: " + data_string)
-    print("some new label: " + label_string)
+    retrieved_test_data_string = contract.query(api, 'getData')
+    retrieved_test_label_string = contract.query(api, 'getLabel')
+    print("some new data: " + retrieved_test_data_string )
+    print("some new label: " + retrieved_test_label_string)
 
     # entity 1 makes a prediction on the new (test) data
-    prediction = contract.query(api, 'predict', data_string=data_string)
+    prediction = contract.query(api, 'predict', data_string=retrieved_test_data_string)
     print("model test prediction: " + prediction)
 
 
