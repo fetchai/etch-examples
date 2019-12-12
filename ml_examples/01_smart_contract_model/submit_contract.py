@@ -4,21 +4,18 @@ from fetchai.ledger.crypto import Entity, Address
 import sys
 import time
 
-# TODO - make different train and test files
-# TODO - make 10 mnist images file
-# TODO - read in all 10 examples
 # TODO - try out switching batch size from data set one to data set two
 
 
-REGRESSION_DATA_TRAIN_FILE = "data/boston_train_data.csv"
-REGRESSION_LABEL_TRAIN_FILE = "data/boston_train_label.csv"
-REGRESSION_DATA_TEST_FILE = "data/boston_test_data.csv"
-REGRESSION_LABEL_TEST_FILE = "data/boston_test_label.csv"
+REGRESSION_DATA_TRAIN_FILE = "data/boston_train_data.csv"       # 5 training examples
+REGRESSION_LABEL_TRAIN_FILE = "data/boston_train_label.csv"     # 5 training labels
+REGRESSION_DATA_TEST_FILE = "data/boston_test_data.csv"         # 4 test examples
+REGRESSION_LABEL_TEST_FILE = "data/boston_test_label.csv"       # 4 test labels
 
-CLASSIFICATION_DATA_TRAIN_FILE = "data/mnist_train_data.csv"
-CLASSIFICATION_LABEL_TRAIN_FILE = "data/mnist_train_label.csv"
-CLASSIFICATION_DATA_TEST_FILE = "data/mnist_test_data.csv"
-CLASSIFICATION_LABEL_TEST_FILE = "data/mnist_test_label.csv"
+CLASSIFICATION_DATA_TRAIN_FILE = "data/mnist_train_data.csv"    # 1 training example
+CLASSIFICATION_LABEL_TRAIN_FILE = "data/mnist_train_label.csv"  # 1 training label
+CLASSIFICATION_DATA_TEST_FILE = "data/mnist_test_data.csv"      # 1 test example
+CLASSIFICATION_LABEL_TEST_FILE = "data/mnist_test_label.csv"    # 1 test label
 
 
 # generic contract setup
