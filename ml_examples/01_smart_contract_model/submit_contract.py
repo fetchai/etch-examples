@@ -4,9 +4,6 @@ from fetchai.ledger.crypto import Entity, Address
 import sys
 import time
 
-# TODO - try out switching batch size from data set one to data set two
-
-
 REGRESSION_DATA_TRAIN_FILE = "data/boston_train_data.csv"       # 5 training examples
 REGRESSION_LABEL_TRAIN_FILE = "data/boston_train_label.csv"     # 5 training labels
 REGRESSION_DATA_TEST_FILE = "data/boston_test_data.csv"         # 4 test examples
