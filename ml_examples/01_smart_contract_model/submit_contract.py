@@ -10,15 +10,15 @@ import time
 # TODO - try out switching batch size from data set one to data set two
 
 
-REGRESSION_DATA_TRAIN_FILE = "../data/boston_data.csv"
-REGRESSION_LABEL_TRAIN_FILE = "../data/boston_label.csv"
-REGRESSION_DATA_TEST_FILE = "../data/boston_data.csv"
-REGRESSION_LABEL_TEST_FILE = "../data/boston_label.csv"
+REGRESSION_DATA_TRAIN_FILE = "data/boston_train_data.csv"
+REGRESSION_LABEL_TRAIN_FILE = "data/boston_train_label.csv"
+REGRESSION_DATA_TEST_FILE = "data/boston_test_data.csv"
+REGRESSION_LABEL_TEST_FILE = "data/boston_test_label.csv"
 
-CLASSIFICATION_DATA_TRAIN_FILE = "../data/mnist_1_image.csv"
-CLASSIFICATION_LABEL_TRAIN_FILE = "../data/mnist_1_label.csv"
-CLASSIFICATION_DATA_TEST_FILE = "../data/mnist_1_image.csv"
-CLASSIFICATION_LABEL_TEST_FILE = "../data/mnist_1_label.csv"
+CLASSIFICATION_DATA_TRAIN_FILE = "data/mnist_train_data.csv"
+CLASSIFICATION_LABEL_TRAIN_FILE = "data/mnist_train_label.csv"
+CLASSIFICATION_DATA_TEST_FILE = "data/mnist_test_data.csv"
+CLASSIFICATION_LABEL_TEST_FILE = "data/mnist_test_label.csv"
 
 
 # generic contract setup
@@ -47,28 +47,27 @@ def contract_setup():
 
 
 # helper function for reading in training data
-def read_one_line_data_csv_as_string(fname):
+def read_csv_as_string(fname):
 
     f = open(fname, 'r')
-    return f.readline()
+    return f.read()
 
 def load_training_data(mode):
 
     if mode == "boston":
 
-        data_string = read_one_line_data_csv_as_string(REGRESSION_DATA_TRAIN_FILE)
-        label_string = read_one_line_data_csv_as_string(REGRESSION_LABEL_TRAIN_FILE)
-
-        print("initial data: " + data_string)
-        print("initial label: " + label_string)
+        data_file =  REGRESSION_DATA_TRAIN_FILE
+        label_file = REGRESSION_LABEL_TRAIN_FILE
 
     elif mode == "mnist":
 
-        data_string = read_one_line_data_csv_as_string(CLASSIFICATION_DATA_TRAIN_FILE)
-        label_string = read_one_line_data_csv_as_string(CLASSIFICATION_LABEL_TRAIN_FILE)
+        data_file  = CLASSIFICATION_DATA_TRAIN_FILE
+        label_file = CLASSIFICATION_LABEL_TRAIN_FILE
 
-        print("initial data: " + data_string)
-        print("initial label: " + label_string)
+    data_string = read_csv_as_string(data_file)
+    label_string = read_csv_as_string(label_file)
+    print("initial data: " + data_string)
+    print("initial label: " + label_string)
 
     return data_string, label_string
 
@@ -80,7 +79,7 @@ def train_and_evaluate(entity, data_string, label_string):
 
     # evaluate the initial loss
     initial_loss = contract.query(api, 'evaluate')
-    print("initial_loss")
+    print("initial_loss: " + initial_loss)
 
 
 def main(source, mode):
@@ -126,6 +125,5 @@ if __name__ == '__main__':
 
     if (sys.argv[2] != ("boston" or "mnist")):
         raise Exception('mode must be set to boston or mnist')
-
 
     main(source, sys.argv[2])
