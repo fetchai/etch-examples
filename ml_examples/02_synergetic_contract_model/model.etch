@@ -1,0 +1,141 @@
+//------------------------------------------------------------------------------
+//
+//   Copyright 2019 Fetch.AI Limited
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//
+//------------------------------------------------------------------------------
+
+persistent model_state : Model;
+persistent data_state : Tensor;
+persistent label_state : Tensor;
+persistent loss_state : Fixed64;
+
+// TODO : createProblem must return the problem - this should wrap up model and data somehow
+// TODO : doWork must take in the problem & nonce, and return the solution - solution must be the new model
+// TODO : evaluateWork must take in the solution, and return a value
+// TODO : applyWork will save the new model to a state, for querying
+
+@init
+function setup()
+  use model_state;
+  use data_state;
+  use label_state;
+
+  // set up the initial model
+  var model = model_state.get(Model("sequential"));
+  model.add("dense", 13u64, 10u64, "relu");
+  model.add("dense", 10u64, 10u64, "relu");
+  model.add("dense", 10u64, 1u64);
+  model.compile("mse", "adam");
+  model_state.set(model);
+
+  // define the initial input data
+  var data_shape = Array<UInt64>(2);
+  data_shape[0] = 13u64;                // boston feature size is 13
+  data_shape[1] = 1u64;                 // batch size == 1
+  var data = data_state.get(Tensor(data_shape));
+  data_state.set(data);
+
+  // define the initial label
+  var label_shape = Array<UInt64>(2);
+  label_shape[0] = 1u64;                // house price output size is 1
+  label_shape[1] = 1u64;                // batch size == 1
+  var label = label_state.get(Tensor(label_shape));
+  label_state.set(label);
+
+endfunction
+
+// set up a problem around training a machine learning model
+@problem
+function createProblem(model: Model, data: Tensor, label: Tensor)
+
+  return {model, data, label}
+
+endfunction
+
+// get the data state
+@query
+function getData() : String
+  use data_state;
+  var data = data_state.get();
+  return data.toString();
+endfunction
+
+// get the label state
+@query
+function getLabel() : String
+  use label_state;
+  var label = label_state.get();
+  return label.toString();
+endfunction
+
+// evaluates performance as the loss function of the model after training
+@objective
+function evaluateWork(in_model: String)
+  use model_state;
+  var model = model_state.get();
+  model.fromString(in_model);
+  return model.evaluate();
+endfunction
+
+// the work of training the model
+@objective
+function doWork(problem : String, nonce : UInt256) :  String
+  use model_state;
+  use data_state;
+  use label_state;
+
+  var model = model_state.get();
+  model.fromString(in_model);
+
+  // update the learning rate of the local model
+  var lr = nonce.toFloat64() % 1.0fp64;
+  model.setLearningRate(lr);
+
+  // train the model
+  var batch_size = 10u64;
+  var data = data_state.get();
+  var label = label_state.get();
+  model.fit(data, label, batch_size);
+
+  // return the serialised model
+  return model.toString();
+endfunction
+
+// set the new model to be the specified winner
+@clear
+function applyWork(in_model: String)
+  use model_state;
+  var model = model_state.get();
+  model.fromString(in_model);
+  model_state.set(model);
+endfunction
+
+// make a prediction with the model based on input data passed to function
+@query
+function predict(data: Tensor) : Tensor
+  use model_state;
+  var model = model_state.get();
+  var prediction = model.predict(data);
+  return prediction;
+endfunction
+
+// query the current model performance
+@query
+function evaluate() : Tensor
+  use model_state;
+  var model = model_state.get();
+  return model.evaluate();
+endfunction
+
