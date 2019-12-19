@@ -57,7 +57,7 @@ endfunction
 function getData() : String
   use data_state;
   var data = data_state.get();
-  return data.toString();
+  return data.transpose().toString();
 endfunction
 
 // get the label state
@@ -65,7 +65,7 @@ endfunction
 function getLabel() : String
   use label_state;
   var label = label_state.get();
-  return label.toString();
+  return label.transpose().toString();
 endfunction
 
 // set the data state
@@ -74,11 +74,14 @@ function setDataAndLabel(data_string: String, label_string: String)
   use data_state;
   use label_state;
 
+  var data = data_state.get();
+  var label = label_state.get();
+
   data.fromString(data_string);
   label.fromString(label_string);
 
-  data_state.set(data);
-  label_state.set(label);
+  data_state.set(data.transpose());
+  label_state.set(label.transpose());
 endfunction
 
 // get the current training loss of the model
@@ -106,7 +109,7 @@ function train(data_string: String, label_string: String)
   label.fromString(label_string);
 
   var batch_size = 10u64;
-  model.fit(data, label, batch_size);
+  model.fit(data.transpose(), label.transpose(), batch_size);
   model_state.set(model);
 endfunction
 
@@ -120,6 +123,6 @@ function predict(data_string: String) : String
   var data = data_state.get();
   data.fromString(data_string);
 
-  var prediction = model.predict(data);
+  var prediction = model.predict(data.transpose());
   return prediction.toString();
 endfunction

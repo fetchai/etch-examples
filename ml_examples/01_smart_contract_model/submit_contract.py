@@ -1,80 +1,85 @@
+import os
+
 from fetchai.ledger.api import LedgerApi
 from fetchai.ledger.contract import Contract
 from fetchai.ledger.crypto import Entity, Address
-import sys
-import time
 
-REGRESSION_DATA_TRAIN_FILE = "../data/boston_train_data.csv"       # 5 training examples
-REGRESSION_LABEL_TRAIN_FILE = "../data/boston_train_label.csv"     # 5 training labels
-REGRESSION_DATA_TEST_FILE = "../data/boston_test_data.csv"         # 4 test examples
-REGRESSION_LABEL_TEST_FILE = "../data/boston_test_label.csv"       # 4 test labels
+HERE = os.path.dirname(__file__)
+DATA_DIR = os.path.join(HERE, "..", "data")
 
-CLASSIFICATION_DATA_TRAIN_FILE = "../data/mnist_train_data.csv"    # 1 training example
-CLASSIFICATION_LABEL_TRAIN_FILE = "../data/mnist_train_label.csv"  # 1 training label
-CLASSIFICATION_DATA_TEST_FILE = "../data/mnist_test_data.csv"      # 1 test example
-CLASSIFICATION_LABEL_TEST_FILE = "../data/mnist_test_label.csv"    # 1 test label
+REGRESSION_DATA_TRAIN_FILE = os.path.join(DATA_DIR, "boston_train_data.csv")  # 5 training examples
+REGRESSION_LABEL_TRAIN_FILE = os.path.join(DATA_DIR, "boston_train_label.csv")  # 5 training labels
+REGRESSION_DATA_TEST_FILE = os.path.join(DATA_DIR, "boston_test_data.csv")  # 4 test examples
+REGRESSION_LABEL_TEST_FILE = os.path.join(DATA_DIR, "boston_test_label.csv")  # 4 test labels
+
+CLASSIFICATION_DATA_TRAIN_FILE = os.path.join(DATA_DIR, "mnist_train_data.csv")  # 1 training example
+CLASSIFICATION_LABEL_TRAIN_FILE = os.path.join(DATA_DIR, "mnist_train_label.csv")  # 1 training label
+CLASSIFICATION_DATA_TEST_FILE = os.path.join(DATA_DIR, "mnist_test_data.csv")  # 1 test example
+CLASSIFICATION_LABEL_TEST_FILE = os.path.join(DATA_DIR, "mnist_test_label.csv")  # 1 test label
 
 
 # generic contract setup
-def contract_setup():
-
+def contract_setup(source, benefactor, options):
     # Create keypair for the contract owner
     entity1 = Entity()
-    address1 = Address(entity1)
+    Address(entity1)
     entity2 = Entity()
-    address2 = Address(entity2)
+    Address(entity2)
 
-    # Setting API up
-    api = LedgerApi('127.0.0.1', 8000)
+    host = options['host']
+    port = options['port']
+    # create the APIs
+    api = LedgerApi(host, port)
 
-    # Need funds to deploy contract
-    api.sync(api.tokens.wealth(entity1, 10000000000000))
-    api.sync(api.tokens.wealth(entity2, 10000000000000))
+    # Transfer tokens from benefactor
+    api.sync(api.tokens.transfer(benefactor, entity1, int(1e7), 1000))
+    api.sync(api.tokens.transfer(benefactor, entity2, int(1e7), 1000))
 
     # Create contract
     contract = Contract(source, entity1)
 
     # Deploy contract
-    api.sync(contract.create(api, entity1, 1000000000))
+    api.sync(contract.create(api, entity1, int(1e7)))
 
     return api, contract, entity1, entity2
 
 
 # helper function for reading in training data
 def read_csv_as_string(fname):
-
     f = open(fname, 'r')
     return f.read()
 
-def load_data(mode, training=True):
 
+def load_data(mode, training=True):
     if mode == "boston":
 
         if training:
-            data_file =  REGRESSION_DATA_TRAIN_FILE
+            data_file = REGRESSION_DATA_TRAIN_FILE
             label_file = REGRESSION_LABEL_TRAIN_FILE
         else:
-            data_file =  REGRESSION_DATA_TEST_FILE
+            data_file = REGRESSION_DATA_TEST_FILE
             label_file = REGRESSION_LABEL_TEST_FILE
 
     elif mode == "mnist":
 
         if training:
-            data_file  = CLASSIFICATION_DATA_TRAIN_FILE
+            data_file = CLASSIFICATION_DATA_TRAIN_FILE
             label_file = CLASSIFICATION_LABEL_TRAIN_FILE
         else:
-            data_file  = CLASSIFICATION_DATA_TEST_FILE
+            data_file = CLASSIFICATION_DATA_TEST_FILE
             label_file = CLASSIFICATION_LABEL_TEST_FILE
+    else:
+        raise Exception("Unknown mode")
 
     data_string = read_csv_as_string(data_file)
     label_string = read_csv_as_string(label_file)
 
     return data_string, label_string
 
-def train_and_evaluate(api, contract, entity, data_string, label_string):
 
+def train_and_evaluate(api, contract, entity, data_string, label_string):
     # train on the input data
-    fet_tx_fee = 16000000
+    fet_tx_fee = api.tokens.balance(entity)
     api.sync(contract.action(api, 'train', fet_tx_fee, [entity], data_string, label_string))
 
     # evaluate the initial loss
@@ -82,9 +87,8 @@ def train_and_evaluate(api, contract, entity, data_string, label_string):
     print("initial_loss: " + initial_loss)
 
 
-def main(source, mode):
-
-    api, contract, entity1, entity2 = contract_setup()
+def main(source, mode, benefactor, options):
+    api, contract, entity1, entity2 = contract_setup(source, benefactor, options)
 
     # load training data
     train_data_string, train_label_string = load_data(mode)
@@ -111,7 +115,7 @@ def main(source, mode):
     # we don't need to do this - but we just demonstrate how here
     retrieved_test_data_string = contract.query(api, 'getData')
     retrieved_test_label_string = contract.query(api, 'getLabel')
-    print("some new data: " + retrieved_test_data_string )
+    print("some new data: " + retrieved_test_data_string)
     print("some new label: " + retrieved_test_label_string)
 
     # entity 1 makes a prediction on the new (test) data
@@ -119,18 +123,21 @@ def main(source, mode):
     print("model test prediction: " + prediction)
 
 
+# run function for running on end to end tests
+def run(options, benefactor):
+    mode = options.get("mode", "boston")
+    if mode == "mnist":
+        source_file = os.path.join(HERE, "model_classifier.etch")
+    elif mode == "boston":
+        source_file = os.path.join(HERE, "model_regressor.etch")
+    else:
+        raise Exception("Unknown mode: " + mode)
 
-if __name__ == '__main__':
+    with open(source_file, "r") as fp:
+        source = fp.read()
 
-    # Loading contract
-    if len(sys.argv) != 3:
-      print("Usage: ", sys.argv[0], "[filename] [mode]")
-      exit(-1)
+    print(options)
 
-    with open(sys.argv[1], "r") as fb:
-      source = fb.read()
-
-    if (sys.argv[2] != ("boston" or "mnist")):
-        raise Exception('mode must be set to boston or mnist')
-
-    main(source, sys.argv[2])
+    if benefactor is None or options is None:
+        raise Exception("Must give options and benefactor")
+    main(source, mode, benefactor, options)
