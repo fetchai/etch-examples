@@ -22,3 +22,15 @@ steps:
   - sleep: 5
   - run_python_test: { "script": "ml_examples.01_smart_contract_model.submit_contract", "mode": "boston"}
 ...
+---
+test_description: >
+  Tensor manipulation test
+setup_conditions:
+  test_name: "tensor_test"
+  number_of_nodes: 1
+  mining_nodes: [0]
+  max_test_time: 60
+steps:
+  - sleep: 5
+  - run_python_test: { "script": "tensor_manipulation.submit_contract"}
+...
