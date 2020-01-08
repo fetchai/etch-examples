@@ -23,6 +23,7 @@ def clean_files(build_root):
 
 def test_end_to_end(build_root, name_filter=None, ledger_dir=LEDGER_DIR):
     sys.path.append(ledger_dir)
+    sys.path.append(os.path.join(ledger_dir, 'scripts', 'fetchai_netutils'))
     from scripts.end_to_end_test import run_end_to_end_test
 
     yaml_file = join(HERE, 'examples.yaml')
@@ -43,7 +44,7 @@ def test_end_to_end(build_root, name_filter=None, ledger_dir=LEDGER_DIR):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Run smart contracts using end_to_end_tests.')
     parser.add_argument('--ledger_dir', help='directory root for ledger, e.g. ./ledger',
                         default=LEDGER_DIR)
     parser.add_argument('--build_dir', help='directory root for constellation build, e.g. ./ledger/build-debug',
