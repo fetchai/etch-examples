@@ -1,9 +1,12 @@
+import os
 from contextlib import contextmanager
 from typing import List
 
 from fetchai.ledger.api import LedgerApi, TokenApi
 from fetchai.ledger.contract import Contract
 from fetchai.ledger.crypto import Entity, Address
+
+HERE = os.path.dirname(__file__)
 
 
 def print_address_balances(api: LedgerApi, contract: Contract, addresses: List[Address]):
@@ -33,7 +36,7 @@ def track_cost(api: TokenApi, entity: Entity, message: str):
     print(message + "{} TOK".format(api.balance(entity) - balance_before))
 
 
-def main():
+def run(options, benefactor):
     # create our first private key pair
     entity1 = Entity()
     address1 = Address(entity1)
@@ -43,16 +46,21 @@ def main():
     address2 = Address(entity2)
 
     # build the ledger API
-    api = LedgerApi('127.0.0.1', 8000)
+    api = LedgerApi(options['host'], options['port'])
 
-    # create wealth so that we have the funds to be able to create contracts on the network
-    api.sync(api.tokens.wealth(entity1, 10000))
+    # Transfer tokens so that we have the funds to be able to create contracts on the network
+    api.sync(api.tokens.transfer(benefactor, entity1, int(1e7), 1000))
+
+    # Load contract source
+    source_file = os.path.join(HERE, "contract.etch")
+    with open(source_file, "r") as fb:
+        source = fb.read()
 
     # create the smart contract
-    contract = Contract(CONTRACT_TEXT, entity1)
+    contract = Contract(source, entity1)
 
     with track_cost(api.tokens, entity1, "Cost of creation: "):
-        api.sync(contract.create(api, entity1, 4000))
+        api.sync(api.contracts.create(entity1, contract, 4000))
 
     # print the current status of all the tokens
     print('-- BEFORE --')
@@ -66,15 +74,3 @@ def main():
 
     print('-- AFTER --')
     print_address_balances(api, contract, [address1, address2])
-
-
-if __name__ == '__main__': 
-    # Loading contract
-    if len(sys.argv) != 2:
-      print("Usage: ", sys.argv[0], "[filename]")
-      exit(-1)
-
-    with open(sys.argv[1], "r") as fb:
-      source = fb.read()
-
-    main(source)

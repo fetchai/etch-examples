@@ -22,3 +22,39 @@ steps:
   - sleep: 5
   - run_python_test: { "script": "ml_examples.01_smart_contract_model.submit_contract", "mode": "boston"}
 ...
+---
+test_description: >
+  Basic contract submission test
+setup_conditions:
+  test_name: "01_submitting_contract"
+  number_of_nodes: 1
+  mining_nodes: [0]
+  max_test_time: 60
+steps:
+  - sleep: 5
+  - run_python_test: { "script": "01_submitting_contract.submit_contract",}
+...
+---
+test_description: >
+  Fet-1 balance transfer example
+setup_conditions:
+  test_name: "Fet-1"
+  number_of_nodes: 1
+  mining_nodes: [0]
+  max_test_time: 60
+steps:
+  - sleep: 5
+  - run_python_test: { "script": "Fet-1.submit_contract",}
+...
+---
+test_description: >
+  Fet-2 example
+setup_conditions:
+  test_name: "Fet-2"
+  number_of_nodes: 1
+  mining_nodes: [0]
+  max_test_time: 60
+steps:
+  - sleep: 5
+  - run_python_test: { "script": "Fet-2.submit_contract",}
+...
