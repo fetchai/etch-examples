@@ -1,37 +1,35 @@
+import os
 from fetchai.ledger.api import LedgerApi
-from fetchai.ledger.contract import SmartContract
+from fetchai.ledger.contract import Contract
 from fetchai.ledger.crypto import Entity, Address
-import sys
-import time
 
-def main(source):
+HERE = os.path.dirname(__file__)
+
+
+def run(options, benefactor):
     # Create keypair for the contract owner
     entity = Entity()
-    address = Address(entity)
-    
-    # Setting API up
-    api = LedgerApi('127.0.0.1', 8100)
+    Address(entity)
 
-    # Need funds to deploy contract
-    api.sync(api.tokens.wealth(entity, 100000))
+    host = options['host']
+    port = options['port']
+
+    # create the APIs
+    api = LedgerApi(host, port)
+
+    # Transfer tokens from benefactor
+    api.sync(api.tokens.transfer(benefactor, entity, int(1e7), 1000))
+
+    # Load contract source
+    source_file = os.path.join(HERE, "hello_world.etch")
+    with open(source_file, "r") as fb:
+        source = fb.read()
 
     # Create contract
-    contract = SmartContract(source)
+    contract = Contract(source, entity)
 
     # Deploy contract
     api.sync(api.contracts.create(entity, contract, 10000))
 
     # Printing message
-    print(contract.query(api, 'persistentGreeting'))    
-
-
-if __name__ == '__main__': 
-    # Loading contract
-    if len(sys.argv) != 2:
-      print("Usage: ", sys.argv[0], "[filename]")
-      exit(-1)
-
-    with open(sys.argv[1], "r") as fb:
-      source = fb.read()
-
-    main(source)
+    print(contract.query(api, 'persistentGreeting'))

@@ -1,46 +1,44 @@
-from fetchai.ledger.api import LedgerApi
-from fetchai.ledger.contract import SmartContract
-from fetchai.ledger.crypto import Entity, Address
-import sys
-import time
+import os
 
-def main(source):
+from fetchai.ledger.api import LedgerApi
+from fetchai.ledger.contract import Contract
+from fetchai.ledger.crypto import Entity, Address
+
+HERE = os.path.dirname(__file__)
+
+
+def run(options, benefactor):
     # Create keypair for the contract owner
     entity = Entity()
     address = Address(entity)
-    
-    # Setting API up
-    api = LedgerApi('127.0.0.1', 8100)
+
+    # build the ledger API
+    api = LedgerApi(options['host'], options['port'])
 
     # Need funds to deploy contract
-    api.sync(api.tokens.wealth(entity, 5000000))
+    api.sync(api.tokens.transfer(benefactor, entity, int(1e7), 1000))
+
+    # Load contract source
+    source_file = os.path.join(HERE, "contract.etch")
+    with open(source_file, "r") as fb:
+        source = fb.read()
 
     # Create contract
-    contract = SmartContract(source)
+    contract = Contract(source, entity)
 
     # Deploy contract
-    api.sync(api.contracts.create(entity, contract, 2456766))
+    fet_tx_fee = api.tokens.balance(entity)
+    api.sync(api.contracts.create(entity, contract, fet_tx_fee))
 
     # Printing balance of the creating address
-    print(contract.query(api, 'balanceOf', owner = address)) 
+    print(contract.query(api, 'balanceOf', owner=address))
 
     # Getting the 9'th token id.
-    token_id = contract.query(api, 'getTokenId', number = 9) 
+    token_id = contract.query(api, 'getTokenId', number=9)
 
     # Testing
-    contract.query(api, 'isEqual', number = 9, expected = token_id) 
+    contract.query(api, 'isEqual', number=9, expected=token_id)
 
     # Locating the owner of a token
-    print("Finding the owner of ", token_id)    
-    print(contract.query(api, 'ownerOf', token_id = token_id))
-
-if __name__ == '__main__': 
-    # Loading contract
-    if len(sys.argv) != 2:
-      print("Usage: ", sys.argv[0], "[filename]")
-      exit(-1)
-
-    with open(sys.argv[1], "r") as fb:
-      source = fb.read()
-
-    main(source)
+    print("Finding the owner of ", token_id)
+    print(contract.query(api, 'ownerOf', token_id=token_id))

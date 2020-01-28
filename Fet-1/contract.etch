@@ -50,10 +50,10 @@ function balanceOf(address: Address) : UInt64
 endfunction
 
 @action
-function transfer(from: Address, to: Address, value: UInt64) : Bool
+function transfer(from: Address, to: Address, value: UInt64) : Int64
 
     if(!from.signedTx())
-      return false;
+      return 1i64;
     endif
 
     use balance_state[from, to];
@@ -61,7 +61,7 @@ function transfer(from: Address, to: Address, value: UInt64) : Bool
     var to_balance = balance_state.get(to, 0u64);
 
     if(from_balance < value)
-      return false;
+      return 2i64;
     endif
 
     var u_from = from_balance - value;
@@ -69,6 +69,6 @@ function transfer(from: Address, to: Address, value: UInt64) : Bool
 
     balance_state.set(from, u_from);
     balance_state.set(to, u_to);
-    return true;
+    return 0i64;
 
 endfunction
