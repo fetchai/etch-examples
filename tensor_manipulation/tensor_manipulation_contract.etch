@@ -1,0 +1,158 @@
+//------------------------------------------------------------------------------
+//
+//   Copyright 2019 Fetch.AI Limited
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//
+//------------------------------------------------------------------------------
+
+persistent output_state : Tensor;
+
+// initial set up creates the model and persistent data
+@init
+function setup(owner : Address)
+  use output_state;
+  var tensor_shape = Array<UInt64>(2);
+  tensor_shape[0] = 2u64;
+  tensor_shape[1] = 2u64;
+  var output = Tensor(tensor_shape);
+
+  output_state.set(output);
+endfunction
+
+// get the output state
+@query
+function getOutput() : String
+  use output_state;
+  var output = output_state.get();
+  return output.toString();
+endfunction
+
+
+// add two tensors and save to state
+@action
+function add(tensor1_string: String, tensor2_string: String)
+  var tensor_shape = Array<UInt64>(2);
+  tensor_shape[0] = 1u64;
+  tensor_shape[1] = 1u64;
+  var tensor1 = Tensor(tensor_shape);
+  tensor1.fromString(tensor1_string);
+
+  var tensor2 = Tensor(tensor_shape);
+  tensor2.fromString(tensor2_string);
+
+  use output_state;
+  var output = output_state.get();
+  output = tensor1 + tensor2;
+  output_state.set(output);
+endfunction
+
+
+// subtract two tensors and save to state
+@action
+function subtract(tensor1_string: String, tensor2_string: String)
+  var tensor_shape = Array<UInt64>(2);
+  tensor_shape[0] = 1u64;
+  tensor_shape[1] = 1u64;
+  var tensor1 = Tensor(tensor_shape);
+  tensor1.fromString(tensor1_string);
+
+  var tensor2 = Tensor(tensor_shape);
+  tensor2.fromString(tensor2_string);
+
+  use output_state;
+  var output = output_state.get();
+  output = tensor1 - tensor2;
+  output_state.set(output);
+endfunction
+
+@action
+function multiply(tensor1_string: String, tensor2_string: String)
+  var tensor_shape = Array<UInt64>(2);
+  tensor_shape[0] = 1u64;
+  tensor_shape[1] = 1u64;
+  var tensor1 = Tensor(tensor_shape);
+  tensor1.fromString(tensor1_string);
+
+  var tensor2 = Tensor(tensor_shape);
+  tensor2.fromString(tensor2_string);
+
+  use output_state;
+  var output = output_state.get();
+  output = tensor1 * tensor2;
+  output_state.set(output);
+endfunction
+
+@action
+function divide(tensor1_string: String, tensor2_string: String)
+  var tensor_shape = Array<UInt64>(2);
+  tensor_shape[0] = 1u64;
+  tensor_shape[1] = 1u64;
+  var tensor1 = Tensor(tensor_shape);
+  tensor1.fromString(tensor1_string);
+
+  var tensor2 = Tensor(tensor_shape);
+  tensor2.fromString(tensor2_string);
+
+  use output_state;
+  var output = output_state.get();
+  output = tensor1 / tensor2;
+  output_state.set(output);
+endfunction
+
+@action
+function copy(tensor1_string: String)
+  var tensor_shape = Array<UInt64>(2);
+  tensor_shape[0] = 1u64;
+  tensor_shape[1] = 1u64;
+  var tensor1 = Tensor(tensor_shape);
+  tensor1.fromString(tensor1_string);
+
+  use output_state;
+  var output = output_state.get();
+  output = tensor1.copy();
+  output_state.set(output);
+endfunction
+
+@action
+function at(tensor1_string: String, index: UInt64)
+  var tensor_shape = Array<UInt64>(2);
+  tensor_shape[0] = 1u64;
+  tensor_shape[1] = 1u64;
+  var tensor1 = Tensor(tensor_shape);
+  tensor1.fromString(tensor1_string);
+
+  use output_state;
+  tensor_shape = Array<UInt64>(1);
+  tensor_shape[0] = 1u64;
+  var output = Tensor(tensor_shape);
+  output.setAt(0u64, tensor1.at(0u64, index));
+  output_state.set(output);
+endfunction
+
+function main()
+  use output_state;
+  var tensor_shape = Array<UInt64>(2);
+  tensor_shape[0] = 2u64;
+  tensor_shape[1] = 2u64;
+  var output = Tensor(tensor_shape);
+
+  output_state.set(output);
+
+  var tensor1_string = "2, 3, 4, 5";
+  var tensor2_string = "1, 2, 3, 4";
+  add(tensor1_string, tensor2_string);
+  subtract(tensor1_string, tensor2_string);
+
+  printLn(getOutput());
+endfunction
